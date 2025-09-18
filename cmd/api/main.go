@@ -1,20 +1,30 @@
 package main
 
 import (
-	"log"
 	"net/http"
+	"log"
+	"github.com/Emerzet/datium-back/internal/config"
+	"github.com/Emerzet/datium-back/internal/httpx"
 )
 
 
 
 func main() {
+	cfg := config.Load()
+	router := httpx.NewRouter()
 
-	srv := &http.Server {
-	Addr: "8080",
-	Handler: http.DefaultServeMux,
+	srv := &http.Server{
+	Addr: cfg.Addr,
+	Handler: router,
+
 
 	}
 
-func (h, *Hello) ServeHTTP()
+
+	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	log.Fatal(err)
+
+	}
+
 
 }

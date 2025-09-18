@@ -1,7 +1,8 @@
 package handlers
 
-import ("net/http"
-"log"
+import (
+	"net/http"
+         "log"
 )
 
 
@@ -9,4 +10,13 @@ import ("net/http"
 
 
 
-func HandleFunc()
+func Health(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	log.Printf("health: %s %s %d", r.Method, r.URL.Path, http.StatusOK)
+
+	w.Write([]byte("ok"))
+
+
+
+
+}
