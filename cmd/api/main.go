@@ -12,14 +12,14 @@ import (
 
 
 func main() {
-	relPublicDir := "../datium-front/public"
+	relPublicDir := "../../../datium-front/public"
 	absPublicDir, err := filepath.Abs(relPublicDir)
 	if err != nil {
 		log.Fatal(err)
-	}										
-	fs := http.FileServer(http.Dir(absPublicDir))
+	}		
+	log.Println("Serving static from:", absPublicDir)
 	cfg := config.Load()
-	router := httpx.NewRouter()
+	router := httpx.NewRouter(absPublicDir)
 
 	srv := &http.Server{
 	Addr: cfg.Addr,
