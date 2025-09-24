@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
-
+        "time"
 	"github.com/Emerzet/datium-back/internal/config"
 	"github.com/Emerzet/datium-back/internal/httpx"
 )
@@ -24,6 +24,9 @@ func main() {
 	srv := &http.Server{
 	Addr: cfg.Addr,
 	Handler: router,
+	ReadHeaderTimeout: 5 * time.Second,
+	WriteTimeout: 10 * time.Second,
+	IdleTimeout: 60 * time.Second,
 
 
 	}
