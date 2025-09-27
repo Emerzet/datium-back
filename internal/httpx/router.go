@@ -24,8 +24,7 @@ func NewRouter(staticDir string) http.Handler {
 		return 
 	}
 
-
-	fs.ServeHTTP(w, r)
+fs.ServeHTTP(w, r)
 	}))
 
 
