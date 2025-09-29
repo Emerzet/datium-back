@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -13,64 +14,55 @@ type Config struct {
 }
 
 type AppConfig struct {
-	Env string
-	BaseURL string
+	Env       string
+	BaseURL   string
+	StaticDir string
 }
 
 type HTTPConfig struct {
-	Addr        string
-	ReadTimeout time.Duration
+	Addr         string
+	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
-	IdleTimeout time.Duration
+	IdleTimeout  time.Duration
 	MaxBodyBytes int64
-
 }
 
 type DbConfig struct {
-	Host string
-	Port int
+	Host     string
+	Port     int
 	Database string
-	User string
+	User     string
 	Password string
-
-
-
 }
-
-
-
-
-
-
 
 func Load() Config {
 	return Config{
-		App: AppConfig {
-			Env:"dev",
-			BaseURL: "http://localhost:8080",
+		App: AppConfig{
+			Env:       getEnv("APP_ENV", "dev"),
+			BaseURL:   getEnv("BASE_URL", "http://localhost:8080"),
+			StaticDir: toAbs(getEnv("STATIC_DIR", "../../datium-front/public")),
 		},
-	
-		HTTP: HTTPConfig {
-			Addr:"localhost:8080",
-			ReadTimeout: 30 * time.Second,
+
+		HTTP: HTTPConfig{
+			Addr:         getEnv("HTTP_ADDR", ":8080"),
+			ReadTimeout:  30 * time.Second,
 			WriteTimeout: 30 * time.Second,
-			IdleTimeout: 120 * time.Second,	
+			IdleTimeout:  120 * time.Second,
 			MaxBodyBytes: 1 << 20,
 		},
-		
-		DB: DbConfig {
-			Host: os.Getenv("DB_HOST"),
-			Port: getEnvAsInt("DB_PORT", 5432),
-			Database: os.Getenv("DB_NAME"),
-			User: os.Getenv("DB_USER"),
-			Password: os.Getenv("DB_PASSWORD"),
 
+		DB: DbConfig{
+			Host:     getEnv("DB_HOST", "localhost"),
+			Port:     getEnvAsInt("DB_PORT", 5432),
+			Database: getEnv("DB_NAME", "datium"),
+			User:     getEnv("DB_USER", "postgres"),
+			Password: getEnv("DB_PASSWORD", ""),
 		},
-					}
-
 	}
 
-	func getEnvAsInt(key string, defaultVal int) int {
+}
+
+func getEnvAsInt(key string, defaultVal int) int {
 	valStr := os.Getenv(key)
 	if valStr == "" {
 		return defaultVal
@@ -82,8 +74,25 @@ func Load() Config {
 	}
 	return val
 
+}
+
+func getEnv(key, defaultVal string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		return defaultVal
 	}
+	return val
 
+}
 
+func toAbs(p string) string {
+	if p == "" {
+		return p
+	}
+	abs, err := filepath.Abs(p)
+	if err != nil {
+		return p
+	}
+	return abs
 
-
+}
