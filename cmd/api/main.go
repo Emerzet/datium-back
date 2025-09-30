@@ -1,30 +1,48 @@
 package main
 
 import (
-	"github.com/Emerzet/datium-back/internal/config"
-	"github.com/Emerzet/datium-back/internal/infra/httpapi"
+	"context"
 	"log"
 	"net/http"
+	"os/signal"
+	"time"
+	"syscall"
+	"github.com/Emerzet/datium-back/internal/config"
+	"github.com/Emerzet/datium-back/internal/httpserver"
+	"github.com/Emerzet/datium-back/internal/infra/httpapi"
+	"os"
 )
 
 func main() {
 	cfg := config.Load()
 
 	log.Println("Serving static from:", cfg.App.StaticDir)
-	router := httpapi.NewRouter(cfg.App.StaticDir)
-
-	srv := &http.Server{
-		Addr:              cfg.HTTP.Addr,
-		Handler:           router,
-		ReadHeaderTimeout: cfg.HTTP.ReadTimeout,
-		WriteTimeout:      cfg.HTTP.WriteTimeout,
-		IdleTimeout:       cfg.HTTP.IdleTimeout,
-	}
+	router := httpapi.NewRouter(cfg.App.StaticDir, cfg.HTTP.MaxBodyBytes)
+	srv := httpserver.New(cfg.HTTP, router)
 
 	log.Println("Listening on", cfg.HTTP.Addr)
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal(err)
+	
+	
+	go func(){
+	if err := srv.Start(); err != nil && err != http.ErrServerClosed {
+		log.Fatal("http server error", err)
 
 	}
+}()
+sigCh := make(chan os.Signal, 1)
+signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+<-sigCh
+
+ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+defer cancel()
+
+if err := srv.Shutdown(ctx); err != nil {
+	log.Println("graceful shutdown error", err)
+
+}else {
+	log.Println("serrver stopped cleanly")
+}
+
+
 
 }

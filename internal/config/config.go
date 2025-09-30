@@ -2,7 +2,6 @@ package config
 
 import (
 	"os"
-	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -24,6 +23,7 @@ type HTTPConfig struct {
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 	IdleTimeout  time.Duration
+	MaxHeaderBytes int
 	MaxBodyBytes int64
 }
 
@@ -40,7 +40,7 @@ func Load() Config {
 		App: AppConfig{
 			Env:       getEnv("APP_ENV", "dev"),
 			BaseURL:   getEnv("BASE_URL", "http://localhost:8080"),
-			StaticDir: toAbs(getEnv("STATIC_DIR", "../../datium-front/public")),
+			StaticDir: getEnv("STATIC_DIR", "/Users/mariuszdubicki/Documents/dev/datium-front/public"),
 		},
 
 		HTTP: HTTPConfig{
@@ -48,6 +48,7 @@ func Load() Config {
 			ReadTimeout:  30 * time.Second,
 			WriteTimeout: 30 * time.Second,
 			IdleTimeout:  120 * time.Second,
+			MaxHeaderBytes: 1 << 20,
 			MaxBodyBytes: 1 << 20,
 		},
 
@@ -85,14 +86,4 @@ func getEnv(key, defaultVal string) string {
 
 }
 
-func toAbs(p string) string {
-	if p == "" {
-		return p
-	}
-	abs, err := filepath.Abs(p)
-	if err != nil {
-		return p
-	}
-	return abs
 
-}
