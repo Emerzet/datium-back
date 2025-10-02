@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"net/url"
 )
 
 type KsefConfig struct {
@@ -22,12 +23,18 @@ type KsefClient struct {
 
 
 
-func NewKsefClient(cfg KsefConfig) *KsefClient {
+func NewKsefClient(cfg KsefConfig) (*KsefClient, error) {
 	// 1.Walidacja BaseURL
-	if cfg.BaseURL == "" {
-		return nil, fmt.Errorf("ksef: BaseURL cannot be empty")
+ 
+	u, err := url.Parse(cfg.BaseURL)
+		if err != nil {
+			return nil, fmt.Errorf("ksef: invalid BaseURL: %w", err)
 
-	}
+		}
+		if u.Scheme != "http" && u.Scheme != "https" {
+			return nil, fmt.Errorf("ksef: BaseUrl must use http or https, got %q", u.Scheme)
+		}
+
 
 	// 2. Domyślne wartości
 	if cfg.Timeout <= 0 {
@@ -42,20 +49,25 @@ func NewKsefClient(cfg KsefConfig) *KsefClient {
 	cfg.BaseURL = strings.TrimRight(cfg.BaseURL, "/")
 
 
-	// 4. Zbuduj klienta
+	// 4. Składanie klienta
+	httpClient := &http.Client {
+		Timeout: cfg.Timeout,
+	}
 
-	return &KsefClient{
+
+	// Gotowy 
+
+	return  &KsefClient{
 		cfg: cfg,
-		httpClient: &http.Client{
-			Timeout: cfg.Timeout,
-		},
+		httpClient: httpClient,
 
-	
-
-
+	},nil
 
 	}
 
-}
+
+
+
+
 
 
